@@ -9,6 +9,9 @@ export default class extends Component {
 
         this.state = {
             originalHref: '#',
+            firstHref: null,
+            secondHref: null,
+            thirdHref: null,
             imageLoaded: false,
         };
         this.openPanorama = this.openPanorama.bind(this);
@@ -99,6 +102,14 @@ export default class extends Component {
             /* TODO EXPAND TO PROPER IMAGES AND DOWNLOADS
             const originalHref = convertCanvasToDataURL(originalCanvas, 'original');
             App.setState({ originalHref });*/
+            const firstHref = convertCanvasToDataURL(firstCanvas, 'original');
+            const secondHref = convertCanvasToDataURL(secondCanvas, 'original');
+            const thirdHref = convertCanvasToDataURL(thirdCanvas, 'original');
+            App.setState({
+                firstHref,
+                secondHref,
+                thirdHref,
+            });
         };
         originalImage.src = URL.createObjectURL(selectedFile);
     }
@@ -119,7 +130,12 @@ export default class extends Component {
     }
 
     renderCrop() {
-        const { imageLoaded } = this.state;
+        const {
+            imageLoaded,
+            firstHref,
+            secondHref,
+            thirdHref,
+        } = this.state;
         if (imageLoaded) {
             return (
                 <div>
@@ -129,7 +145,7 @@ export default class extends Component {
                             className="App-Window-original-canvas"
                         />
                     </div>
-                    <div>
+                    <div style={{display: 'none'}}>
                         <canvas
                             ref={c => (this.firstCanvas = c)}
                             className="App-Window-card-canvas"
@@ -142,6 +158,11 @@ export default class extends Component {
                             ref={c => (this.thirdCanvas = c)}
                             className="App-Window-card-canvas"
                         />
+                    </div>
+                    <div>
+                        <img src={firstHref} className="App-Window-card-canvas"/>
+                        <img src={secondHref} className="App-Window-card-canvas"/>
+                        <img src={thirdHref} className="App-Window-card-canvas"/>
                     </div>
                 </div>
             );
