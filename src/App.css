@@ -10,7 +10,12 @@
 .App-Window-original-canvas{
     width: 720px;
     height: 240px;
-    margin-left: 10px;
+}
+
+.App-Window-card-canvas{
+    width: 240px;
+    height: 240px;
+    margin-left: 1px;
 }
 
 .App-Window__select-button {

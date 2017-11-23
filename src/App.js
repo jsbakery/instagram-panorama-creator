@@ -1,31 +1,18 @@
 import React, { Component } from 'react';
-import { Button, Text, TitleBar, Window } from 'react-desktop/macOs';
+import { Button, TitleBar, Window } from 'react-desktop/macOs';
 import './App.css';
-
-function downloadCanvas(target, canvas, fileName) {
-    return function() {
-        document.getElementById(target).href = canvas
-            .toDataURL('image/png')
-            .replace(
-                /^data:image\/[^;]*/,
-                `data:application/octet-stream;headers=Content-Disposition%3A%20attachment%3B%20filename=${
-                    fileName
-                }.png`
-            );
-    };
-}
+import { convertCanvasToDataURL } from './helpers';
 
 export default class extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
+            originalHref: '#',
             imageLoaded: false,
-            selectedFile: null,
         };
-        this.fileSelector = null;
-        this.originalCanvas = null;
         this.openPanorama = this.openPanorama.bind(this);
+        this.processPanorama = this.processPanorama.bind(this);
         this.setFileSelector = this.setFileSelector.bind(this);
     }
 
@@ -40,21 +27,31 @@ export default class extends Component {
 
     processPanorama() {
         const App = this;
-        const { originalCanvas, state: { selectedFile } } = App;
+        const { originalCanvas, firstCanvas, secondCanvas, thirdCanvas, selectedFile } = App;
         const originalImage = new Image();
 
-        originalImage.onload = function() {
-            const ctx = originalCanvas.getContext('2d');
+        originalImage.onload = function () {
             const { width, height } = originalImage;
             const cardPixels = width / 3;
             const heightOffset = Math.max(height / 2 - cardPixels, 0);
 
-            originalCanvas.width = cardPixels * 3;
-            originalCanvas.height = cardPixels;
-            const { width: cWidth, height: cHeight } = originalCanvas;
-            ctx.clearRect(0, 0, cWidth, cHeight);
-            ctx.imageSmoothingQuality = 'high';
-            ctx.drawImage(
+            const ocWidth = originalCanvas.width = cardPixels * 3;
+            const ocHeight = originalCanvas.height = cardPixels;
+            const cardcWidth = firstCanvas.width = secondCanvas.width = thirdCanvas.width = cardPixels;
+            const cardcHeight = firstCanvas.height = secondCanvas.height = thirdCanvas.height = cardPixels;
+
+            const originalCtx = originalCanvas.getContext('2d');
+            const firstCtx = firstCanvas.getContext('2d');
+            const secondCtx = secondCanvas.getContext('2d');
+            const thirdCtx = thirdCanvas.getContext('2d');
+
+            originalCtx.clearRect(0, 0, ocWidth, ocHeight);
+            firstCtx.clearRect(0, 0, cardcWidth, cardcHeight);
+            secondCtx.clearRect(0, 0, cardcWidth, cardcHeight);
+            thirdCtx.clearRect(0, 0, cardcWidth, cardcHeight);
+            originalCtx.imageSmoothingQuality = firstCtx.imageSmoothingQuality = secondCtx.imageSmoothingQuality = thirdCtx.imageSmoothingQuality = 'high';
+
+            originalCtx.drawImage(
                 originalImage,
                 0,
                 heightOffset,
@@ -62,32 +59,68 @@ export default class extends Component {
                 cardPixels,
                 0,
                 0,
-                cWidth,
-                cHeight
+                ocWidth,
+                ocHeight,
             );
+
+            firstCtx.drawImage(
+                originalImage,
+                0,
+                heightOffset,
+                cardPixels,
+                cardPixels,
+                0,
+                0,
+                cardcWidth,
+                cardcHeight,
+            );
+            secondCtx.drawImage(
+                originalImage,
+                cardPixels,
+                heightOffset,
+                cardPixels,
+                cardPixels,
+                0,
+                0,
+                cardcWidth,
+                cardcHeight,
+            );
+            thirdCtx.drawImage(
+                originalImage,
+                2 * cardPixels,
+                heightOffset,
+                cardPixels,
+                cardPixels,
+                0,
+                0,
+                cardcWidth,
+                cardcHeight,
+            );
+            /* TODO EXPAND TO PROPER IMAGES AND DOWNLOADS
+            const originalHref = convertCanvasToDataURL(originalCanvas, 'original');
+            App.setState({ originalHref });*/
         };
         originalImage.src = URL.createObjectURL(selectedFile);
-        console.log(selectedFile.width);
-        App.setState({});
     }
 
     setFileSelector(element) {
         const App = this;
         this.fileSelector = element;
-        element.onchange = function() {
+        element.onchange = function () {
+            App.selectedFile = this.files[0];
             App.setState(
                 {
                     imageLoaded: true,
-                    selectedFile: this.files[0],
+                    originalHref: '#',
                 },
-                App.processPanorama
+                App.processPanorama,
             );
         };
     }
 
     renderCrop() {
-        const { originalCanvas, state: { imageLoaded, selectedFile } } = this;
-        if (imageLoaded && selectedFile) {
+        const { imageLoaded } = this.state;
+        if (imageLoaded) {
             return (
                 <div>
                     <div>
@@ -95,16 +128,6 @@ export default class extends Component {
                             ref={c => (this.originalCanvas = c)}
                             className="App-Window-original-canvas"
                         />
-                        <a
-                            onClick={downloadCanvas(
-                                'downloadOriginal',
-                                originalCanvas,
-                                'original.png'
-                            )}
-                            id="downloadOriginal"
-                        >
-                            download
-                        </a>
                     </div>
                     <div>
                         <canvas
@@ -130,7 +153,7 @@ export default class extends Component {
         return (
             <div>
                 <Window chrome height="300px" padding="10px" className="App-Window">
-                    <TitleBar title="Instagram Panorama Creator" />
+                    <TitleBar title="Instagram Panorama Creator"/>
                     <Button
                         color="blue"
                         onClick={this.openPanorama}
@@ -138,7 +161,7 @@ export default class extends Component {
                     >
                         Select Panorama
                     </Button>
-                    <br />
+                    <br/>
                     <input
                         className="App-Window__hidden-item"
                         type="file"
