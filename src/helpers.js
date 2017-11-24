@@ -5,3 +5,11 @@ export function convertCanvasToDataURL(canvas) {
         console.error(e);
     }
 }
+
+export function convertCanvasToBlob(canvas) {
+    try {
+        return new Promise(resolve => canvas.toBlob(blob => resolve(URL.createObjectURL(blob))));
+    } catch (e) {
+        console.error(e);
+    }
+}

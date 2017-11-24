@@ -6,6 +6,8 @@
 
 .App-Window-side-pane {
     margin-right: 10px;
+    max-width: 110px;
+    text-align: center;
 }
 
 .App-Window__select-button {
@@ -27,4 +29,11 @@
     max-width: 239px;
     max-height: 239px;
     margin-left: 1px;
+}
+
+.App-Window-controls {
+    margin-top: 50px;
+}
+.App-Window-controls svg {
+    margin: 0 auto;
 }
