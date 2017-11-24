@@ -8,7 +8,6 @@ export default class extends Component {
         super(props);
 
         this.state = {
-            originalHref: '#',
             firstHref: null,
             secondHref: null,
             thirdHref: null,
@@ -30,7 +29,7 @@ export default class extends Component {
 
     processPanorama() {
         const App = this;
-        const { originalCanvas, firstCanvas, secondCanvas, thirdCanvas, selectedFile } = App;
+        const { firstCanvas, secondCanvas, thirdCanvas, selectedFile } = App;
         const originalImage = new Image();
 
         originalImage.onload = function () {
@@ -38,70 +37,46 @@ export default class extends Component {
             const cardPixels = width / 3;
             const heightOffset = Math.max(height / 2 - cardPixels, 0);
 
-            const ocWidth = originalCanvas.width = cardPixels * 3;
-            const ocHeight = originalCanvas.height = cardPixels;
-            const cardcWidth = firstCanvas.width = secondCanvas.width = thirdCanvas.width = cardPixels;
-            const cardcHeight = firstCanvas.height = secondCanvas.height = thirdCanvas.height = cardPixels;
+            const cardcWidth = (firstCanvas.width = secondCanvas.width = thirdCanvas.width = cardPixels);
+            const cardcHeight = (firstCanvas.height = secondCanvas.height = thirdCanvas.height = cardPixels);
 
-            const originalCtx = originalCanvas.getContext('2d');
             const firstCtx = firstCanvas.getContext('2d');
             const secondCtx = secondCanvas.getContext('2d');
             const thirdCtx = thirdCanvas.getContext('2d');
 
-            originalCtx.clearRect(0, 0, ocWidth, ocHeight);
             firstCtx.clearRect(0, 0, cardcWidth, cardcHeight);
             secondCtx.clearRect(0, 0, cardcWidth, cardcHeight);
             thirdCtx.clearRect(0, 0, cardcWidth, cardcHeight);
-            originalCtx.imageSmoothingQuality = firstCtx.imageSmoothingQuality = secondCtx.imageSmoothingQuality = thirdCtx.imageSmoothingQuality = 'high';
+            firstCtx.imageSmoothingQuality = secondCtx.imageSmoothingQuality = thirdCtx.imageSmoothingQuality =
+                'high';
 
-            originalCtx.drawImage(
-                originalImage,
-                0,
-                heightOffset,
-                3 * cardPixels,
-                cardPixels,
-                0,
-                0,
-                ocWidth,
-                ocHeight,
-            );
+            [
+                {
+                    ctx: firstCtx,
+                    xOffset: 0,
+                },
+                {
+                    ctx: secondCtx,
+                    xOffset: cardPixels,
+                },
+                {
+                    ctx: thirdCtx,
+                    xOffset: 2 * cardPixels,
+                },
+            ].forEach(({ ctx, xOffset }) => {
+                ctx.drawImage(
+                    originalImage,
+                    xOffset,
+                    heightOffset,
+                    cardPixels,
+                    cardPixels,
+                    0,
+                    0,
+                    cardcWidth,
+                    cardcHeight,
+                );
+            });
 
-            firstCtx.drawImage(
-                originalImage,
-                0,
-                heightOffset,
-                cardPixels,
-                cardPixels,
-                0,
-                0,
-                cardcWidth,
-                cardcHeight,
-            );
-            secondCtx.drawImage(
-                originalImage,
-                cardPixels,
-                heightOffset,
-                cardPixels,
-                cardPixels,
-                0,
-                0,
-                cardcWidth,
-                cardcHeight,
-            );
-            thirdCtx.drawImage(
-                originalImage,
-                2 * cardPixels,
-                heightOffset,
-                cardPixels,
-                cardPixels,
-                0,
-                0,
-                cardcWidth,
-                cardcHeight,
-            );
-            /* TODO EXPAND TO PROPER IMAGES AND DOWNLOADS
-            const originalHref = convertCanvasToDataURL(originalCanvas, 'original');
-            App.setState({ originalHref });*/
             const firstHref = convertCanvasToDataURL(firstCanvas, 'original');
             const secondHref = convertCanvasToDataURL(secondCanvas, 'original');
             const thirdHref = convertCanvasToDataURL(thirdCanvas, 'original');
@@ -130,22 +105,14 @@ export default class extends Component {
     }
 
     renderCrop() {
-        const {
-            imageLoaded,
-            firstHref,
-            secondHref,
-            thirdHref,
-        } = this.state;
+        const { imageLoaded, firstHref, secondHref, thirdHref } = this.state;
         if (imageLoaded) {
             return (
-                <div>
-                    <div>
-                        <canvas
-                            ref={c => (this.originalCanvas = c)}
-                            className="App-Window-original-canvas"
-                        />
-                    </div>
-                    <div style={{display: 'none'}}>
+                <div className="App-Window-main-pane">
+                    <img src={firstHref} className="App-Window-card-canvas" alt=""/>
+                    <img src={secondHref} className="App-Window-card-canvas" alt=""/>
+                    <img src={thirdHref} className="App-Window-card-canvas" alt=""/>
+                    <div className="App-Window__hidden-item">
                         <canvas
                             ref={c => (this.firstCanvas = c)}
                             className="App-Window-card-canvas"
@@ -159,11 +126,6 @@ export default class extends Component {
                             className="App-Window-card-canvas"
                         />
                     </div>
-                    <div>
-                        <img src={firstHref} className="App-Window-card-canvas"/>
-                        <img src={secondHref} className="App-Window-card-canvas"/>
-                        <img src={thirdHref} className="App-Window-card-canvas"/>
-                    </div>
                 </div>
             );
         }
@@ -173,21 +135,22 @@ export default class extends Component {
     render() {
         return (
             <div>
-                <Window chrome height="300px" padding="10px" className="App-Window">
+                <Window chrome height="550px" padding="10px" className="App-Window">
                     <TitleBar title="Instagram Panorama Creator"/>
-                    <Button
-                        color="blue"
-                        onClick={this.openPanorama}
-                        className="App-Window__select-button"
-                    >
-                        Select Panorama
-                    </Button>
-                    <br/>
-                    <input
-                        className="App-Window__hidden-item"
-                        type="file"
-                        ref={this.setFileSelector}
-                    />
+                    <div className="App-Window-side-pane">
+                        <Button
+                            color="blue"
+                            onClick={this.openPanorama}
+                            className="App-Window__select-button"
+                        >
+                            Select Panorama
+                        </Button>
+                        <input
+                            className="App-Window__hidden-item"
+                            type="file"
+                            ref={this.setFileSelector}
+                        />
+                    </div>
                     {this.renderCrop()}
                 </Window>
             </div>

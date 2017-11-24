@@ -1,24 +1,30 @@
 .App-Window {
+    width: 95% !important;
     max-width: 870px;
-    margin: 100px auto 0;
+    margin: 100px auto;
+}
+
+.App-Window-side-pane {
+    margin-right: 10px;
+}
+
+.App-Window__select-button {
+    height: 55px;
+    width: 110px;
 }
 
 .App-Window__hidden-item {
     display: none;
 }
 
-.App-Window-original-canvas{
-    width: 720px;
-    height: 240px;
+.App-Window-main-pane {
+    overflow: auto;
 }
 
-.App-Window-card-canvas{
-    width: 240px;
-    height: 240px;
+.App-Window-card-canvas {
+    width: 100%;
+    height: auto;
+    max-width: 239px;
+    max-height: 239px;
     margin-left: 1px;
-}
-
-.App-Window__select-button {
-    height: 55px;
-    width: 110px;
 }
